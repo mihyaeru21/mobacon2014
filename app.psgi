@@ -62,11 +62,11 @@ post '/user/register' => sub {
     $username
   );
 
-  say "";
-  say ref $user;
-  say "";
-
-  return $c->render_json($user);
+  return $c->render_json({
+    id => $user->{id},
+    username => $user->{name},
+    api_key => $user->{apikey},
+  });
 };
 
 
