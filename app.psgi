@@ -70,6 +70,28 @@ post '/user/register' => sub {
 };
 
 
+get '/user/{username:.+}' => sub {
+  my ($c, $args) = @_;
+
+  my $username = $args->{username};
+  say $username;
+  my $user = $c->db->select_row(
+    q{SELECT id FROM user WHERE name = ?;},
+    $username
+  );
+
+  unless ($user) {
+    my $res = $c->render_json({message => "Not found."});
+    $res->status(404);
+    return $res;
+  }
+
+  return $c->render_json(
+    {id => $user->{id}}
+  );
+};
+
+
 
 use DBIx::Sunny;
 sub db {
