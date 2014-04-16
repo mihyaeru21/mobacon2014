@@ -7,14 +7,22 @@ use Amon2::Lite;
 
 get '/' => sub {
   my ($c) = @_;
-  my $db = $c->db;
-  my $rows = $db->selectall_arrayref(
+  my $rows = $c->db->selectall_arrayref(
     q{SELECT id, title FROM books ORDER BY id ASC LIMIT ?;},
     +{},
     10
   );
   return $c->render_json($rows);
 };
+
+
+post '/admin/reset' => sub {
+  my $c = shift;
+  $c->db->query(q{TRUNCATE TABLE user;});
+  $c->db->query(q{TRUNCATE TABLE lend;});
+  return $c->create_response(204);
+};
+
 
 
 use DBIx::Sunny;
