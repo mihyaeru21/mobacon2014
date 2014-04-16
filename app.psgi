@@ -74,7 +74,6 @@ get '/user/{username:.+}' => sub {
   my ($c, $args) = @_;
 
   my $username = $args->{username};
-  say $username;
   my $user = $c->db->select_row(
     q{SELECT id FROM user WHERE name = ?;},
     $username
@@ -85,6 +84,47 @@ get '/user/{username:.+}' => sub {
     $res->status(404);
     return $res;
   }
+
+  return $c->render_json(
+    {id => $user->{id}}
+  );
+};
+
+any ['delete'], '/user/{username:.+}' => sub {
+  my ($c, $args) = @_;
+
+  my $username = $args->{username};
+  my $apikey_req = $c->req->param('api_key');
+
+  unless ($apikey_req) {
+    my $res = $c->render_json({message => "Unauthorized"});
+    $res->status(401);
+    return $res;
+  }
+
+  my $user = $c->db->select_row(
+    q{SELECT id, apikey FROM user WHERE name = ?;},
+    $username
+  );
+
+  my $apikey_db = $user->{apikey};
+  unless ($apikey_req eq $apikey_db) {
+    my $res = $c->render_json({message => "invalid api_key"});
+    $res->status(401);
+    return $res;
+  }
+  unless ($user) {
+    my $res = $c->render_json({message => "not found"});
+    $res->status(404);
+    return $res;
+  }
+
+  # todo: レンタル中チェック
+
+  $c->db->query(
+    q{DELETE FROM user WHERE name = ?;},
+    $username
+  );
 
   return $c->render_json(
     {id => $user->{id}}
