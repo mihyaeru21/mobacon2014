@@ -29,7 +29,10 @@ post '/user/register' => sub {
   my $c = shift;
   my ($username, $password) = ($c->req->param('username'), $c->req->param('password'));
 
-  unless ($username and $password) {
+  my $param_lost = not ($username and $password);
+  my $name_over = length $username > 32;
+  my $pass_over = length $password > 65535;
+  if ($param_lost or $name_over or $pass_over) {
     my $res = $c->render_json({message => "parameter error."});
     $res->status(400);
     return $res;
